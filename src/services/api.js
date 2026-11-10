@@ -1,62 +1,29 @@
-import { cardsList } from "../main";
-import { addToSavedCardsList, getSavedCardsList, saveSavedCardsList } from "../storage";
+import { addToSavedCardsList, getSavedCardsList, saveSavedCardsList } from "../storage.js";
 // Roll A Card 
 
-export function loadMore() {
-    console.log("load more work")
-let List = getSavedCardsList()
-let callBtn = document.querySelector("#rollbtn");
 
-callBtn.addEventListener("click", async () => {
+
+ export async function requist(source) {
     try {
    
-         let response = await fetch(`cards.json`)
+         let response = await fetch(source)
+
+         if (!response.ok) {
+            throw new Error(`Error ${response.status}: Not able to fetch data.`);
+        }
+
          let data = await response.json()
         
-         let allCards = data.data;
+         let allCards = data.data 
+         console.log(Array.isArray(data.data));
+         return allCards
         
-         allCards.forEach(c => {
-            if(!List.includes(c)) {
-                let newCard = {
-            id: "#" + c.id,
-            name: c.name,
-            type: c.type,
-            level: c.level || "---",
-            stats: { 
-                attack: c.atk !== undefined ? c.atk : "---", 
-                defence: c.def !== undefined ? c.def : "---" 
-            },
-            image: c.card_images[0].image_url,
-            description: c.desc || "No Description"
-        }
-        addToSavedCardsList(newCard)
-            }
-         });
-
-        
-
-
-        saveSavedCardsList(List)
-                
-        cardsList(List);
-
-        console.log("The cards Loaded!");
-        
-    } catch (error) {
+        } catch (error) {
         console.error("The load failed ", error.message);
-        alert("Error: " + error.message);
+        alert("Error: " + error.message)
+        return []
     }
-});
 
-}
+    }
+ 
 
-// rest your data
-
-export function deleteAll () {
-let resetBtn = document.querySelector("#resetbtn") 
-
-resetBtn.addEventListener("click", () => {
-  localStorage.clear()
-  location.reload()
-})
-}

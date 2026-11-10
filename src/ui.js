@@ -1,14 +1,16 @@
-import { getSavedCardsList, getSavedDeck } from "./storage";
+import { getSavedCardsList, getSavedDeck, addToSavedCardsList } from "./storage.js";
+import {requist} from "./services/api.js"
 
 //cardsList Function
 export function cardsRender() {
 
     let cards = getSavedCardsList()
-if (cards) {
-  cards.innerHTML = "";
+    const cardsList = document.querySelector("#Ccards");
+if (cardsList) {
+  cardsList.innerHTML = "";
 
-  data.forEach(c => {
-      cards.innerHTML += `<article class="relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
+  cards.forEach(c => {
+      cardsList.innerHTML += `<article class="relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
       
       <div class="relative flex items-center justify-center rounded-xl overflow-hidden">
         <span class="absolute top-2 left-2 font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2 py-0.5 rounded border border-yellow-500/30 z-10">${c.id}</span>
@@ -82,4 +84,44 @@ export function updateTeamCount() {
       detailSection.innerHTML = "";
     });
   }
+}
+
+
+export async function loadMore() {
+    let source = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
+    let allCards = await requist(source);
+    let limit = 20;
+    let addedCount = 0; 
+
+    let savedList = getSavedCardsList();
+
+    for (let c of allCards) {
+        if (addedCount >= limit) break;
+
+        let formattedId = "#" + c.id;
+
+        let existsInSaved = savedList.some(r => r.id === formattedId);
+
+        if (!existsInSaved) {
+            let newCard = {
+                id: formattedId,
+                name: c.name,
+                type: c.type,
+                level: c.level || "---",
+                stats: { 
+                    attack: c.atk !== undefined ? c.atk : "---", 
+                    defence: c.def !== undefined ? c.def : "---" 
+                },
+                image: c.card_images?.[0]?.image_url || "",
+                description: c.desc || "No Description"
+            };
+
+            addToSavedCardsList(newCard);
+            savedList.push(newCard); 
+            addedCount++; 
+        }
+    }
+
+    console.log(`Successfully added ${addedCount} new cards.`);
+    location.reload();
 }
