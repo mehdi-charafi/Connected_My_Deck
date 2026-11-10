@@ -1,39 +1,15 @@
-let SavedDeck = JSON.parse(localStorage.getItem('mydeck')) || [];
-let SavedCardsList = JSON.parse(localStorage.getItem(`cardslist`)) || [];
+
+import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage";
+import { cardsList, renderDeck, updateTeamCount, showCardDetails } from "./ui";
 renderDeck(); 
 updateTeamCount();
 
 
 
 // Cards List
-const cards = document.querySelector("#Ccards");
-if(SavedCardsList.length == 0) {
-creatures.forEach((c) => SavedCardsList.push(c))
-localStorage.setItem(`cardslist`, JSON.stringify(SavedCardsList))
-}
-cardsList(SavedCardsList)
+cardsRender()
 
-//cardsList Function
-function cardsList(data) {
 
-if (cards) {
-  cards.innerHTML = "";
-
-  data.forEach(c => {
-      cards.innerHTML += `<article class="relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
-      
-      <div class="relative flex items-center justify-center rounded-xl overflow-hidden">
-        <span class="absolute top-2 left-2 font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2 py-0.5 rounded border border-yellow-500/30 z-10">${c.id}</span>
-        <img src="${c.image}" alt="${c.name}" class="w-full h-auto object-contain rounded-lg">
-      </div>
-
-      <button type="button" class="card-btn w-full py-2.5 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold rounded-lg shadow-md transition-all cursor-pointer">
-        Add to your cards
-      </button>
-
-    </article>`;
-})};
-}
 
 
 //filter
@@ -41,6 +17,7 @@ let filter = document.querySelector("#filter")
 let enabledFilter = false
 let filterValue = []
 filter.addEventListener("change", (event) => {
+  let SavedCardsList = getSavedCardsList()
   if(event.target.value == "Tous") {
     cardsList(SavedCardsList)
   } else {
@@ -55,6 +32,7 @@ let search = document.querySelector("#search")
 let filterSelect = document.querySelector("#filter");
 let sortSelect = document.querySelector("#sort");
 search.addEventListener("input", (event) => {
+  let SavedCardsList = getSavedCardsList()
   let query = event.target.value.toLowerCase().trim();
 let match = SavedCardsList.filter((c) => c.name.toLowerCase().includes(query));
 cardsList(match);
@@ -65,6 +43,7 @@ if (sortSelect) sortSelect.value = "id";
 //sort
 let sort = document.querySelector("#sort")
 sort.addEventListener('change', (event) => {
+  let SavedCardsList = getSavedCardsList()
    let value = event.target.value
    let sorted = []
    if(enabledFilter == true) {
@@ -87,6 +66,7 @@ sort.addEventListener('change', (event) => {
 // show card detail
 
   cards.addEventListener('click', (event) => {
+    let SavedCardsList = getSavedCardsList()
     if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn')) {
       return; 
     }
@@ -102,34 +82,7 @@ sort.addEventListener('change', (event) => {
     }
 });
 
-function showCardDetails(cardData) {
-  const detailSection = document.getElementById('dcard');
-  if (!detailSection) return;
 
-
-  detailSection.innerHTML = `
-    <article id="detail" aria-label="Détail de la créature" class="relative flex flex-col gap-3 rounded-2xl p-4 border border-gray-800 shadow-2xl bg-[#12161c] bg-cover bg-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
-      
-      <div class="flex items-center justify-between relative z-10">
-        <span class="font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">${cardData.id} · Détail</span>
-        <button type="button" aria-label="Fermer le détail" class="w-8 h-8 flex items-center justify-center text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer">✕</button>
-      </div>
-
-      <div class="relative flex items-center justify-center rounded-xl overflow-hidden z-10">
-        <img src="${cardData.image}" alt="${cardData.name}" class="w-full h-auto object-contain rounded-lg">
-      </div>
-
-
-    </article>
-  `;
-
-  const closeBtn = detailSection.querySelector('button[aria-label="Fermer le détail"]');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      detailSection.innerHTML = "";
-    });
-  }
-}
 
 // Add mew cards to the list
 
@@ -284,36 +237,9 @@ form.addEventListener(`submit`, (event) => {
     updateTeamCount();
   }
 
-  function renderDeck() {
-    const mycardsSection = document.getElementById('mycards');
-    if (!mycardsSection) return;
-    
-    mycardsSection.innerHTML = ""; 
-    
-    SavedDeck.forEach(cardData => {
-        mycardsSection.innerHTML += `
-           <div id="card-item" class="w-full min-h-[220px] border border-gray-700 rounded-lg p-2" data-id="${cardData.id}"> 
-            <div class="flex items-center justify-between relative z-10">
-              <span class="font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">${cardData.id} · Détail</span>
-              <button type="button" aria-label="Remove card" class="remove-btn w-8 h-8 flex items-center justify-center text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer">✕</button>
-            </div>
+  
 
-            <div class="relative flex items-center justify-center rounded-xl overflow-hidden z-10">
-              <img src="${cardData.image}" alt="${cardData.name}" class="w-full h-auto object-contain rounded-lg" loading="lazy">
-            </div>
-          </div>
-        `;
-    });
-}
-
-  function updateTeamCount() {
-    const mycardsSection = document.getElementById('mycards');
-    let count = document.querySelectorAll(".team-count");
-    if (mycardsSection && count) {
-      count.forEach((c) => c.textContent = mycardsSection.children.length);
-    }
-
-  }
+  
 
   const mycardsSection = document.getElementById('mycards');
   if (mycardsSection) {
@@ -333,51 +259,3 @@ form.addEventListener(`submit`, (event) => {
   }
 
 
-  // Roll A Card 
-let callBtn = document.querySelector("#rollbtn");
-
-callBtn.addEventListener("click", async () => {
-    try {
-   
-         let response = await fetch(`cards.json`)
-         let data = await response.json()
-        
-         let allCards = data.data;
-        
-         let randomIndex = Math.round(Math.random() * allCards.length)
-         let cardinfo = allCards[randomIndex]
-
-        let newCard = {
-            id: "#" + cardinfo.id,
-            name: cardinfo.name,
-            type: cardinfo.type,
-            level: cardinfo.level || "---",
-            stats: { 
-                attack: cardinfo.atk !== undefined ? cardinfo.atk : "---", 
-                defence: cardinfo.def !== undefined ? cardinfo.def : "---" 
-            },
-            image: cardinfo.card_images[0].image_url,
-            description: cardinfo.desc || "No Description"
-        };
-
-        SavedCardsList.push(newCard);
-        localStorage.setItem("cardslist", JSON.stringify(SavedCardsList));
-                
-        cardsList(SavedCardsList);
-
-        console.log("The card is added!");
-        
-    } catch (error) {
-        console.error("The roll is failed ", error.message);
-        alert("Error: " + error.message);
-    }
-});
-
-
-// rest your data
-let resetBtn = document.querySelector("#resetbtn") 
-
-resetBtn.addEventListener("click", () => {
-  localStorage.clear()
-  location.reload()
-})
