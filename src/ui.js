@@ -2,19 +2,21 @@ import { getSavedCardsList, getSavedDeck, addToSavedCardsList } from "./storage.
 import {requist} from "./services/api.js"
 
 //cardsList Function
-export function cardsRender() {
+export function cardsRender(list) {
 
     let cards = getSavedCardsList()
+    if(list) cards = list
     const cardsList = document.querySelector("#Ccards");
 if (cardsList) {
   cardsList.innerHTML = "";
 
   cards.forEach(c => {
+    let cardImage = c.card_images?.[0]?.image_url || c.image || '';
       cardsList.innerHTML += `<article class="relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
       
       <div class="relative flex items-center justify-center rounded-xl overflow-hidden">
         <span class="absolute top-2 left-2 font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2 py-0.5 rounded border border-yellow-500/30 z-10">${c.id}</span>
-        <img src="${c.image}" alt="${c.name}" class="w-full h-auto object-contain rounded-lg">
+        <img src="${cardImage}" alt="${c.name}" class="w-full h-auto object-contain rounded-lg">
       </div>
 
       <button type="button" class="card-btn w-full py-2.5 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold rounded-lg shadow-md transition-all cursor-pointer">
@@ -36,7 +38,7 @@ export function renderDeck() {
         mycardsSection.innerHTML += `
            <div id="card-item" class="w-full min-h-[220px] border border-gray-700 rounded-lg p-2" data-id="${cardData.id}"> 
             <div class="flex items-center justify-between relative z-10">
-              <span class="font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">${cardData.id} · Détail</span>
+              <span class="font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">${cardData.id}</span>
               <button type="button" aria-label="Remove card" class="remove-btn w-8 h-8 flex items-center justify-center text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer">✕</button>
             </div>
 

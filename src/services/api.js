@@ -15,12 +15,10 @@ import { addToSavedCardsList, getSavedCardsList, saveSavedCardsList } from "../s
          let data = await response.json()
         
          let allCards = data.data 
-         console.log(Array.isArray(data.data));
          return allCards
         
         } catch (error) {
         console.error("The load failed ", error.message);
-        alert("Error: " + error.message)
         return []
     }
 

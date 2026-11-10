@@ -1,5 +1,6 @@
 import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage.js";
 import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore} from "./ui.js";
+import { requist } from "./services/api.js";
 renderDeck(); 
 updateTeamCount();
 
@@ -15,10 +16,10 @@ let filterValue = []
 filter.addEventListener("change", (event) => {
   let SavedCardsList = getSavedCardsList()
   if(event.target.value == "Tous") {
-    cardsList(SavedCardsList)
+    cardsRender()
   } else {
     filterValue = SavedCardsList.filter((c) => c.type == event.target.value)
-    cardsList(filterValue)
+    cardsRender(filterValue)
     enabledFilter = true
   }
 })
@@ -27,14 +28,21 @@ filter.addEventListener("change", (event) => {
 let search = document.querySelector("#search")
 let filterSelect = document.querySelector("#filter");
 let sortSelect = document.querySelector("#sort");
-search.addEventListener("input", (event) => {
+search.addEventListener("input", async (event) => {
   let SavedCardsList = getSavedCardsList()
   let query = event.target.value.toLowerCase().trim();
-  let match = SavedCardsList.filter((c) => c.name.toLowerCase().includes(query));
-  cardsList(match);
+  if(!query){
+    cardsRender()
+    return
+  }
+  let url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query.trim())}`
+  let match = await requist(url)
+  console.log(match)
+  cardsRender(match.slice(0, 30));
+  
   if (filterSelect) filterSelect.value = "Tous"; 
   if (sortSelect) sortSelect.value = "id";
-})
+});
 
 //sort
 let sort = document.querySelector("#sort")
@@ -53,7 +61,7 @@ sort.addEventListener('change', (event) => {
       let valB = (value === "attack" || value === "defence") ? Number(b.stats[value]) : Number(b[value]);
       return valB - valA; 
     })
-    cardsList(sorted)
+    cardsRender(sorted)
    } else if (value == "id") cardsList(sorted)
 })
 
@@ -164,7 +172,7 @@ form.addEventListener(`submit`, (event) => {
   addToSavedCardsList(newCard);
 
   let SavedCardsList = getSavedCardsList();
-  cardsList(SavedCardsList);
+  cardsRender(SavedCardsList);
 
   form.reset();
   form.querySelectorAll('input, textarea, select').forEach(input => {
@@ -201,7 +209,6 @@ function addToMyCards(cardData) {
     const existingCards = mycardsSection.querySelectorAll("#card-item");
     const isAlreadyAdded = Array.from(existingCards).some((d) => d.querySelector("span").textContent.includes(cardData.id));
     if (isAlreadyAdded) return;
-    
     addToSavedDeck(cardData);
 
     renderDeck(); 
