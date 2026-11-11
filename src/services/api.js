@@ -1,4 +1,5 @@
 import { addToSavedCardsList, getSavedCardsList, saveSavedCardsList } from "../storage.js";
+import { hideLoading, showErrorState } from "../ui.js";
 // Roll A Card 
 
 
@@ -19,6 +20,8 @@ import { addToSavedCardsList, getSavedCardsList, saveSavedCardsList } from "../s
         
         } catch (error) {
         console.error("The load failed ", error.message);
+        hideLoading()
+        showErrorState(error.message)
         return []
     }
 

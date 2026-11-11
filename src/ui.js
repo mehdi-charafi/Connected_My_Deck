@@ -1,6 +1,7 @@
 import { getSavedCardsList, getSavedDeck, addToSavedCardsList } from "./storage.js";
 import {requist} from "./services/api.js"
 
+
 //cardsList Function
 export function cardsRender(list) {
 
@@ -109,10 +110,10 @@ export async function loadMore() {
                 id: formattedId,
                 name: c.name,
                 type: c.type,
-                level: c.level || "---",
+                level: c.level || 0,
                 stats: { 
-                    attack: c.atk !== undefined ? c.atk : "---", 
-                    defence: c.def !== undefined ? c.def : "---" 
+                    attack: c.atk !== undefined ? c.atk : 0, 
+                    defence: c.def !== undefined ? c.def : 0 
                 },
                 image: c.card_images?.[0]?.image_url || "",
                 description: c.desc || "No Description"
@@ -126,4 +127,54 @@ export async function loadMore() {
 
     console.log(`Successfully added ${addedCount} new cards.`);
     location.reload();
+}
+
+
+// Loading
+
+export function showLoading() {
+    let loading = document.getElementById("loading-spinner")
+    let empty = document.getElementById("empty-state")
+    let error = document.getElementById("error-state")
+    loading.classList.remove("hidden");
+    empty.classList.add("hidden");
+    error.classList.add("hidden");
+    const cardsList = document.querySelector("#Ccards");
+    if (cardsList) cardsList.innerHTML = ""; 
+    
+    document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+}
+
+export function hideLoading() {
+    document.getElementById("loading-spinner")?.classList.add("hidden");
+    document.querySelectorAll("button").forEach(btn => btn.disabled = false);
+}
+
+export function showEmptyState(message = "Nothing is found.") {
+    hideLoading();
+    let empty = document.getElementById("empty-state")
+    let error = document.getElementById("error-state")
+    empty.classList.remove("hidden");
+    error.classList.add("hidden");
+    
+    const msgElement = document.getElementById("empty-message");
+    if (msgElement) msgElement.textContent = message;
+    
+    const cardsList = document.querySelector("#Ccards");
+    if (cardsList) cardsList.innerHTML = "";
+}
+
+export function showErrorState(errorMessage) {
+    hideLoading();
+    let error = document.getElementById("error-state")
+    let empty = document.getElementById("empty-state")
+    error.classList.remove("hidden");
+    empty.classList.add("hidden");
+    
+    const msgElement = document.getElementById("error-message");
+    if (msgElement) msgElement.textContent = errorMessage || "Erreur de connexion.";
+    
+    const cardsList = document.querySelector("#Ccards");
+    if (cardsList) cardsList.innerHTML = "";
+
 }

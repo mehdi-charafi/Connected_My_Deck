@@ -1,9 +1,8 @@
 import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage.js";
-import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore} from "./ui.js";
+import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore, showLoading, hideLoading, showEmptyState} from "./ui.js";
 import { requist } from "./services/api.js";
 renderDeck(); 
 updateTeamCount();
-
 // Cards List
 const cards = document.querySelector("#Ccards");
 if(getSavedCardsList().length == 0)loadMore();
@@ -29,15 +28,17 @@ let search = document.querySelector("#search")
 let filterSelect = document.querySelector("#filter");
 let sortSelect = document.querySelector("#sort");
 search.addEventListener("input", async (event) => {
-  let SavedCardsList = getSavedCardsList()
+  showLoading()
   let query = event.target.value.toLowerCase().trim();
   if(!query){
+    hideLoading()
     cardsRender()
     return
   }
   let url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query.trim())}`
   let match = await requist(url)
-  console.log(match)
+  hideLoading()
+  if(match.length == 0)showEmptyState()
   cardsRender(match.slice(0, 30));
   
   if (filterSelect) filterSelect.value = "Tous"; 
@@ -62,7 +63,7 @@ sort.addEventListener('change', (event) => {
       return valB - valA; 
     })
     cardsRender(sorted)
-   } else if (value == "id") cardsList(sorted)
+   } else if (value == "id") cardsRender(sorted)
 })
 
 // show card detail
