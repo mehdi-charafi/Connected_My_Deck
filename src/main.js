@@ -1,16 +1,12 @@
-
-import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage";
-import { cardsList, renderDeck, updateTeamCount, showCardDetails } from "./ui";
+import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage.js";
+import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore, showLoading, hideLoading, showEmptyState, addToFavorite} from "./ui.js";
+import { requist } from "./services/api.js";
 renderDeck(); 
 updateTeamCount();
-
-
-
 // Cards List
-cardsRender()
-
-
-
+const cards = document.querySelector("#Ccards");
+if(getSavedCardsList().length == 0)loadMore();
+cardsRender();
 
 //filter
 let filter = document.querySelector("#filter")
@@ -19,10 +15,10 @@ let filterValue = []
 filter.addEventListener("change", (event) => {
   let SavedCardsList = getSavedCardsList()
   if(event.target.value == "Tous") {
-    cardsList(SavedCardsList)
+    cardsRender()
   } else {
     filterValue = SavedCardsList.filter((c) => c.type == event.target.value)
-    cardsList(filterValue)
+    cardsRender(filterValue)
     enabledFilter = true
   }
 })
@@ -31,14 +27,23 @@ filter.addEventListener("change", (event) => {
 let search = document.querySelector("#search")
 let filterSelect = document.querySelector("#filter");
 let sortSelect = document.querySelector("#sort");
-search.addEventListener("input", (event) => {
-  let SavedCardsList = getSavedCardsList()
+search.addEventListener("input", async (event) => {
+  showLoading()
   let query = event.target.value.toLowerCase().trim();
-let match = SavedCardsList.filter((c) => c.name.toLowerCase().includes(query));
-cardsList(match);
-if (filterSelect) filterSelect.value = "Tous"; 
-if (sortSelect) sortSelect.value = "id";
-})
+  if(!query){
+    hideLoading()
+    cardsRender()
+    return
+  }
+  let url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query.trim())}`
+  let match = await requist(url)
+  hideLoading()
+  if(match.length == 0)showEmptyState()
+  cardsRender(match.slice(0, 30));
+  
+  if (filterSelect) filterSelect.value = "Tous"; 
+  if (sortSelect) sortSelect.value = "id";
+});
 
 //sort
 let sort = document.querySelector("#sort")
@@ -51,23 +56,29 @@ sort.addEventListener('change', (event) => {
    } else {
     sorted = [...SavedCardsList]
    }
-   if(value != "id") {
+   if (value === "favorite") {
     sorted.sort((a, b) => {
-      let valA = (value === "attack" || value === "defence") ? Number(a.stats[value]) : Number(a[value]);
-           let valB = (value === "attack" || value === "defence") ? Number(b.stats[value]) : Number(b[value]);
-           
-           return valB - valA; 
+      if(a.favorite && !b.favorite) return -1
+      if(!a.favorite && b.favorite) return 1
+      return 0
     })
-   
-    cardsList(sorted)
-   } else if (value == "id") cardsList(sorted)
+  } 
+  else if (value !== "id") {
+    sorted.sort((a, b) => {
+      let valA = Number(a[value] ?? 0);
+      let valB = Number(b[value] ?? 0);
+
+      return valB - valA; 
+    })
+  }
+
+  cardsRender(sorted)
 })
 
 // show card detail
-
-  cards.addEventListener('click', (event) => {
+cards.addEventListener('click', (event) => {
     let SavedCardsList = getSavedCardsList()
-    if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn')) {
+    if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn') || event.target.closest(".fav-icon")) {
       return; 
     }
 
@@ -82,11 +93,7 @@ sort.addEventListener('change', (event) => {
     }
 });
 
-
-
-// Add mew cards to the list
-
-// Validation
+// Add new cards to the list (Validation & Storage update)
 const form = document.querySelector(`#creature-form`);
 
 const regexPatterns = {
@@ -113,9 +120,7 @@ const errorMessages = {
 form.addEventListener(`focusout`, (event) => {
   const input = event.target
   const fieldName = input.name
-
   if (!regexPatterns[fieldName]) return;
-
   validateField(input, fieldName);
 })
 
@@ -124,10 +129,9 @@ function validateField(input, fieldName) {
   const errorSpan = input.nextElementSibling;
   if (input.value == "") {
     if(errorSpan && errorSpan.classList.contains(`error-message`)) {
-      input.classList.remove(`border-red-500`);
-      input.classList.remove(`border-green-500`);
+      input.classList.remove(`border-red-500`, `border-green-500`);
       errorSpan.textContent = "";
-      }
+    }
   }
   else if (pattern.test(input.value.trim())) {
     input.classList.remove(`border-red-500`);
@@ -151,111 +155,127 @@ form.addEventListener(`submit`, (event) => {
   event.preventDefault();
 
   let isFormValid = true
-
   Object.keys(regexPatterns).forEach(fieldName => {
     const input = form.elements[fieldName];
     if(input) {
       const isValid = validateField(input, fieldName);
-      if(!isValid) {
-        isFormValid = false
-      }
+      if(!isValid) isFormValid = false;
     }
-  })
+  });
 
   if (!isFormValid) {
-    
-    console.log("Rectify the errors before submiting.")
+    console.log("Rectify the errors before submitting.");
     return;
   }
 
-
   const formData = new FormData(form);
-  
   const newCard = {
     id: formData.get("id"),
     name: formData.get("name"),
     type: formData.get("type"),
     level: formData.get("level"),
-    stats: {attack: formData.get("attack"), defence: formData.get("defence")},
+    stats: { attack: formData.get("attack"), defence: formData.get("defence") },
     image: formData.get("image"),
     description: formData.get("description")
   };
 
-  SavedCardsList.push(newCard);
-  localStorage.setItem(`cardslist`, JSON.stringify(SavedCardsList))
+  addToSavedCardsList(newCard);
 
-  cardsList(SavedCardsList);
+  let SavedCardsList = getSavedCardsList();
+  cardsRender(SavedCardsList);
 
   form.reset();
-
   form.querySelectorAll('input, textarea, select').forEach(input => {
     input.classList.remove('border-green-500', 'border-red-500');
   });
   
-  let Ccounts = document.querySelector("#cards-count")
-  Ccounts.textContent = Object.keys(SavedCardsList).length
+  let Ccounts = document.querySelector("#cards-count");
+  if(Ccounts) Ccounts.textContent = SavedCardsList.length;
 
   console.log("New card added successfully!", newCard);
 });
 
-
-  // Add to my cards
-
-  cards.addEventListener('click', (event) => {
+// Add to my cards
+cards.addEventListener('click', (event) => {
     if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn')) {
       const button = event.target.closest("button")
-
       const article = button.closest('article');
       if (!article) return;
 
-      const cardId = article.querySelector('span').textContent
-      const selectedCard = SavedCardsList.find(c => c.id == cardId)
+      let SavedCardsList = getSavedCardsList();
+      const cardId = article.querySelector('span').textContent;
+      const selectedCard = SavedCardsList.find(c => c.id == cardId);
 
       if (selectedCard) {
-        addToMyCards(selectedCard)
+        addToMyCards(selectedCard);
       }
-      
-
     } 
-
 });
 
-
-  function addToMyCards(cardData) {
+function addToMyCards(cardData) {
     const mycardsSection = document.getElementById('mycards');
     if (!mycardsSection || mycardsSection.children.length >= 6) return;
     
     const existingCards = mycardsSection.querySelectorAll("#card-item");
     const isAlreadyAdded = Array.from(existingCards).some((d) => d.querySelector("span").textContent.includes(cardData.id));
     if (isAlreadyAdded) return;
-    
-    SavedDeck.push(cardData)
-    
-    localStorage.setItem(`mydeck`, JSON.stringify(SavedDeck))
+    addToSavedDeck(cardData);
 
     renderDeck(); 
     updateTeamCount();
-  }
+}
 
-  
+const mycardsSection = document.getElementById('mycards');
+if (mycardsSection) {
+  mycardsSection.addEventListener('click', (event) => {
+    const removeBtn = event.target.closest('button[aria-label="Remove card"]');
+    if (!removeBtn) return;
 
-  
+    const cardItem = removeBtn.closest('#card-item');
+    if (cardItem) {
+      const cardId = cardItem.getAttribute('data-id');
+      let SavedDeck = getSavedDeck();
+      
+      SavedDeck = SavedDeck.filter((c) => c.id != cardId);
+      saveSavedDeck(SavedDeck);
 
-  const mycardsSection = document.getElementById('mycards');
-  if (mycardsSection) {
-    mycardsSection.addEventListener('click', (event) => {
-      const removeBtn = event.target.closest('button[aria-label="Remove card"]');
-      if (!removeBtn) return;
+      renderDeck(SavedDeck);
+      updateTeamCount();
+    }
+  });
+}
 
-      const cardItem = removeBtn.closest('#card-item');
-      if (cardItem) {
-        const cardId = cardItem.getAttribute('data-id');
-        SavedDeck = SavedDeck.filter((c) => c.id != cardId)
-        localStorage.setItem(`mydeck`, JSON.stringify(SavedDeck))
-        renderDeck(SavedDeck)
-        updateTeamCount();
-      }
+// Load More 
+let callBtn = document.querySelector("#rollbtn");
+if(callBtn) {
+  callBtn.addEventListener("click", () => {
+    loadMore();
+
+  });
+}
+
+// reset your data
+
+  let resetBtn = document.querySelector("#resetbtn"); 
+  if(resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      console.log("reset works")
+      localStorage.clear();
+      location.reload();
     });
   }
 
 
+  // favorite icon
+  let detailCard = document.querySelector("#dcard")
+  document.addEventListener("click", (e)=> {
+    if(!e.target.closest(".fav-icon"))return
+    let favCard = e.target.closest(".card")
+    let favIcon = e.target.closest(".fav-icon")
+    let favCardId = favCard.querySelector(".card-id").getAttribute("card-id")
+    addToFavorite(favCardId, favIcon)
+  })
+
+
+
+ 

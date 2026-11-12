@@ -74,21 +74,23 @@
 
         <div class="block w-full md:w-113">
           <select id="filter" class="field w-full font-normal bg-[#12161c] text-white border border-gray-700">
-          <option value="Tous">All Types</option>
-          <option value="Effect">Effect</option>
-          <option value="LIGHT">LIGHT</option>
-          <option value="Fusion">Fusion</option>
-          <option value="DARK">DARK</option>
-          <option value="EARTH">EARTH</option>
-          <option value="WATER">WATER</option>
-          </select>
+  <option value="Tous">All Types</option>
+  <option value="Normal Monster">Normal Monster</option>
+  <option value="Effect Monster">Effect Monster</option>
+  <option value="Fusion Monster">Fusion Monster</option>
+  <option value="Pendulum Effect Monster">Pendulum Effect Monster</option>
+  <option value="Link Monster">Link Monster</option>
+  <option value="Spell Card">Spell Card</option>
+  <option value="Trap Card">Trap Card</option>
+</select>
         </div>
         <div class="sort block w-full md:w-113">
           <select id="sort" class="field w-full font-normal bg-[#12161c] text-white border border-gray-700">
-            <option value="id">Sort By ID</option>
+            <option value="id">Default</option>
             <option value="level">Sort By Level</option>
             <option value="attack">Sort By Attack</option>
             <option value="defence">Sort By Defence</option>
+            <option value="favorite">Sort By Favorite</option>
           </select>
         </div>
 
@@ -101,6 +103,21 @@
     <div class="flex flex-col lg:flex-row gap-8 items-start">
 
       <!-- ===================== GRILLE DES CRÉATURES ===================== -->
+  <!--Loading-->
+  <div id="loading-spinner" class="hidden flex flex-col items-center justify-center py-16 col-span-full gap-3">
+  <div class="w-12 h-12 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin"></div>
+  <p class="text-yellow-400 font-mono text-sm tracking-wider">Loading Cards...</p>
+</div>
+
+  <!--Empty-->
+<div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 col-span-full gap-3 text-center">
+  <p id="empty-message" class="text-white font-mono text-sm tracking-wider">Nothing is found.</p>
+</div>
+<!--Error-->
+<div id="error-state" class="hidden flex flex-col items-center justify-center py-16 col-span-full gap-3 text-center">
+  <p id="empty-message" class="text-white font-mono text-sm tracking-wider">Check your connection and try again.</p>
+</div>
+
       <section id="Ccards" aria-label="Créatures" class="grid min-w-0 flex-1 lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5 mx-auto">
 
        
@@ -109,7 +126,7 @@
 
       <aside class="flex w[350] md:w-[420px] shrink-0 flex-col gap-6 mx-auto">
 
-        <!-- ===================== PANNEAU DE DÉTAIL ===================== -->
+        <!-- ===================== PANNEAU DE DETAIL ===================== -->
         <div id="dcard" class="hidden lg:block">
         
         </div>
@@ -126,8 +143,23 @@
       </aside>
     </div>
 
+        <!-- ===================== Load More Cards ===================== -->
+    <div class="flex flex gap-5 justify-center">
+    <section class="flex flex-col gap-6 rounded-card bg-[#0b0f15]/95 backdrop-blur-md p-8 w-79 md:w-150 lg:w-106 lg:h-50">
+      <h2 class="font-display text-3xl font-extrabold text-white">Load More</h2>
+      <button id="rollbtn" type="button" class="button btn-primary cursor-pointer">Load More</button>
+    </section>
+
+    <!-- ===================== Reset Cards ===================== -->
+    <section class="flex flex-col gap-6 rounded-card bg-[#0b0f15]/95 backdrop-blur-md p-8 w-79 md:w-150 lg:w-106 lg:h-50">
+      <h2 class="font-display text-3xl font-extrabold text-white">Data Reset</h2>
+      <button id="resetbtn" type="button" class="btn-primary cursor-pointer">Reset</button>
+    </section>
+    </div>
+  </div>
+
     <!-- ===================== FORMULAIRE DE CRÉATION ===================== -->
-    <div class="lg:flex gap-8">
+    <div class="flex flex-col gap-8">
     <section id="create" aria-label="Nouvelle créature" class="flex flex-col gap-6 rounded-card bg-[#0b0f15]/95 backdrop-blur-md p-8 w-79 md:w-150 mx-auto lg:w-full">
       <div>
         <h2 class="font-display text-3xl font-extrabold text-white">New Card</h2>
@@ -180,20 +212,8 @@
       </form>
     </section>
 
-    <!-- ===================== Random Card ===================== -->
-    <div class="flex flex-col gap-5">
-    <section class="flex flex-col gap-6 rounded-card bg-[#0b0f15]/95 backdrop-blur-md p-8 w-79 md:w-150 mx-auto lg:w-106 lg:h-50">
-      <h2 class="font-display text-3xl font-extrabold text-white">Random Card</h2>
-      <button id="rollbtn" type="button" class="btn-primary cursor-pointer">Roll</button>
-    </section>
+    
 
-    <!-- ===================== Random Card ===================== -->
-    <section class="flex flex-col gap-6 rounded-card bg-[#0b0f15]/95 backdrop-blur-md p-8 w-79 md:w-150 mx-auto lg:w-106 lg:h-50">
-      <h2 class="font-display text-3xl font-extrabold text-white">Data Rest</h2>
-      <button id="resetbtn" type="button" class="btn-primary cursor-pointer">Rest</button>
-    </section>
-    </div>
-  </div>
   </main>
 
   <footer class="w-full text-sm text-muted text-white text-center backdrop-blur-lg bg-[#0b0f15]/70 p-4">
@@ -201,7 +221,6 @@
   </footer>
 
   <!-- data.js (à créer) doit être chargé AVANT script.js -->
-  <script src="./data.js"></script>
-  <script src="./main.js"></script>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
