@@ -1,5 +1,5 @@
 import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage.js";
-import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore, showLoading, hideLoading, showEmptyState} from "./ui.js";
+import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore, showLoading, hideLoading, showEmptyState, addToFavorite} from "./ui.js";
 import { requist } from "./services/api.js";
 renderDeck(); 
 updateTeamCount();
@@ -56,20 +56,29 @@ sort.addEventListener('change', (event) => {
    } else {
     sorted = [...SavedCardsList]
    }
-   if(value != "id") {
+   if (value === "favorite") {
     sorted.sort((a, b) => {
-      let valA = (value === "attack" || value === "defence") ? Number(a.stats[value]) : Number(a[value]);
-      let valB = (value === "attack" || value === "defence") ? Number(b.stats[value]) : Number(b[value]);
+      if(a.favorite && !b.favorite) return -1
+      if(!a.favorite && b.favorite) return 1
+      return 0
+    })
+  } 
+  else if (value !== "id") {
+    sorted.sort((a, b) => {
+      let valA = Number(a[value] ?? 0);
+      let valB = Number(b[value] ?? 0);
+
       return valB - valA; 
     })
-    cardsRender(sorted)
-   } else if (value == "id") cardsRender(sorted)
+  }
+
+  cardsRender(sorted)
 })
 
 // show card detail
 cards.addEventListener('click', (event) => {
     let SavedCardsList = getSavedCardsList()
-    if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn')) {
+    if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn') || event.target.closest(".fav-icon")) {
       return; 
     }
 
@@ -255,3 +264,18 @@ if(callBtn) {
       location.reload();
     });
   }
+
+
+  // favorite icon
+  let detailCard = document.querySelector("#dcard")
+  document.addEventListener("click", (e)=> {
+    if(!e.target.closest(".fav-icon"))return
+    let favCard = e.target.closest(".card")
+    let favIcon = e.target.closest(".fav-icon")
+    let favCardId = favCard.querySelector(".card-id").getAttribute("card-id")
+    addToFavorite(favCardId, favIcon)
+  })
+
+
+
+ 

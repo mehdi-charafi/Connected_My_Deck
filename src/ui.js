@@ -1,4 +1,4 @@
-import { getSavedCardsList, getSavedDeck, addToSavedCardsList } from "./storage.js";
+import { getSavedCardsList, getSavedDeck, addToSavedCardsList, saveSavedCardsList } from "./storage.js";
 import {requist} from "./services/api.js"
 
 
@@ -10,21 +10,30 @@ export function cardsRender(list) {
     const cardsList = document.querySelector("#Ccards");
 if (cardsList) {
   cardsList.innerHTML = "";
-
+  
   cards.forEach(c => {
+    let color = `text-white`
+  if(getSavedCardsList().find(r => r.id == c.id).favorite == true)color = `text-yellow-400`
     let cardImage = c.card_images?.[0]?.image_url || c.image || '';
-      cardsList.innerHTML += `<article class="relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
+     cardsList.innerHTML += `<article class="card relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
+    
+    <div class="relative flex items-center justify-center rounded-xl overflow-hidden">
       
-      <div class="relative flex items-center justify-center rounded-xl overflow-hidden">
-        <span class="absolute top-2 left-2 font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2 py-0.5 rounded border border-yellow-500/30 z-10">${c.id}</span>
-        <img src="${cardImage}" alt="${c.name}" class="w-full h-auto object-contain rounded-lg">
+      <div class="absolute top-2 left-2 z-10 inline-flex items-center gap-1.5 bg-black/70 px-2 py-1 rounded border border-yellow-500/35 backdrop-blur-sm">
+        <span class="card-id text-yellow-400 font-mono text-xs font-bold" card-id="${c.id}">${c.id}</span>
+        <span class="fav-icon cursor-pointer ${color} hover:text-yellow-400 text-sm transition-colors select-none" data-id="${c.id}">
+          ★
+        </span>
       </div>
 
-      <button type="button" class="card-btn w-full py-2.5 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold rounded-lg shadow-md transition-all cursor-pointer">
-        Add to your cards
-      </button>
+      <img src="${cardImage}" alt="${c.name}" class="w-full h-auto object-contain rounded-lg">
+    </div>
 
-    </article>`;
+    <button type="button" class="card-btn w-full py-2.5 bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold rounded-lg shadow-md transition-all cursor-pointer">
+      Add to your cards
+    </button>
+
+  </article>`;
 })};
 }
 
@@ -63,14 +72,20 @@ export function updateTeamCount() {
   export function showCardDetails(cardData) {
   const detailSection = document.getElementById('dcard');
   if (!detailSection) return;
-
+  let color = `text-white`
+  if(getSavedCardsList().find(c => c.id == cardData.id).favorite == true)color = `text-yellow-400`
 
   detailSection.innerHTML = `
-    <article id="detail" aria-label="Détail de la créature" class="relative flex flex-col gap-3 rounded-2xl p-4 border border-gray-800 shadow-2xl bg-[#12161c] bg-cover bg-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
+    <article id="detail" aria-label="card Détail de la créature" class="relative flex flex-col gap-3 rounded-2xl p-4 border border-gray-800 shadow-2xl bg-[#12161c] bg-cover bg-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
       
       <div class="flex items-center justify-between relative z-10">
-        <span class="font-mono text-xs font-bold text-yellow-400 bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">${cardData.id} · Détail</span>
-        <button type="button" aria-label="Fermer le détail" class="w-8 h-8 flex items-center justify-center text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer">✕</button>
+        <div class="inline-flex items-center gap-2 font-mono text-xs font-bold bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">
+  <span class="card-id text-yellow-400" card-id="${cardData.id}">${cardData.id} · Détail</span>
+  <span class="fav-icon cursor-pointer ${color} hover:text-yellow-400 text-xl transition-colors select-none" data-id="${cardData.id}">
+    ★
+  </span>
+</div>
+       <button type="button" aria-label="Fermer le détail" class="w-8 h-8 flex items-center justify-center text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer">✕</button>
       </div>
 
       <div class="relative flex items-center justify-center rounded-xl overflow-hidden z-10">
@@ -93,6 +108,7 @@ export function updateTeamCount() {
 export async function loadMore() {
     let source = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
     let allCards = await requist(source);
+    if(getSavedCardsList.length == 0)allCards = allCards.splice(20)
     let limit = 20;
     let addedCount = 0; 
 
@@ -178,3 +194,27 @@ export function showErrorState(errorMessage) {
     if (cardsList) cardsList.innerHTML = "";
 
 }
+
+
+// Add To Favorite
+export function addToFavorite(favCardId, favIcon) {
+  console.log(`id is ${favCardId}`)
+   let SavedCardsList = getSavedCardsList()
+   SavedCardsList.forEach((c) => {
+    if(c.id == favCardId) {
+      if(c.favorite == true) {
+        c.favorite = false
+        console.log(c.favorite)
+        favIcon.classList.remove("text-yellow-400")
+        favIcon.classList.add("text-white")
+      }
+      else {
+         c.favorite = true
+         console.log(c.favorite)
+         favIcon.classList.add("text-yellow-400")
+         favIcon.classList.remove("text-white")
+        }
+    }
+    })
+   saveSavedCardsList(SavedCardsList)
+   }
