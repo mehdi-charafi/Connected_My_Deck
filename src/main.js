@@ -1,4 +1,4 @@
-import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList } from "./storage.js";
+import { getSavedDeck, saveSavedDeck, addToSavedDeck, getSavedCardsList, saveSavedCardsList, addToSavedCardsList} from "./storage.js";
 import { cardsRender, renderDeck, updateTeamCount, showCardDetails, loadMore, showLoading, hideLoading, showEmptyState, addToFavorite} from "./ui.js";
 import { requist } from "./services/api.js";
 renderDeck(); 
@@ -27,7 +27,8 @@ filter.addEventListener("change", (event) => {
 let search = document.querySelector("#search")
 let filterSelect = document.querySelector("#filter");
 let sortSelect = document.querySelector("#sort");
-search.addEventListener("input", async (event) => {
+search.addEventListener("keydown", async (event) => {
+  if(event.key != "Enter")return
   showLoading()
   let query = event.target.value.toLowerCase().trim();
   if(!query){
@@ -35,6 +36,8 @@ search.addEventListener("input", async (event) => {
     cardsRender()
     return
   }
+  
+  
   let url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query.trim())}`
   let match = await requist(url)
   hideLoading()
@@ -44,6 +47,7 @@ search.addEventListener("input", async (event) => {
   if (filterSelect) filterSelect.value = "Tous"; 
   if (sortSelect) sortSelect.value = "id";
 });
+
 
 //sort
 let sort = document.querySelector("#sort")
@@ -57,21 +61,17 @@ sort.addEventListener('change', (event) => {
     sorted = [...SavedCardsList]
    }
    if (value === "favorite") {
-    sorted.sort((a, b) => {
-      if(a.favorite && !b.favorite) return -1
-      if(!a.favorite && b.favorite) return 1
-      return 0
-    })
-  } 
-  else if (value !== "id") {
-    sorted.sort((a, b) => {
-      let valA = Number(a[value] ?? 0);
-      let valB = Number(b[value] ?? 0);
-
-      return valB - valA; 
-    })
-  }
-
+  sorted.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
+} 
+else if (value === "level") {
+  sorted.sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0))
+}
+else if (value === "attack") {
+  sorted.sort((a, b) => (Number(b.stats.attack) || 0) - (Number(a.stats.attack) || 0)); 
+}
+else if (value === "defence") {
+  sorted.sort((a, b) => (Number(b.stats.defence) || 0) - (Number(a.stats.defence) || 0));
+}
   cardsRender(sorted)
 })
 
