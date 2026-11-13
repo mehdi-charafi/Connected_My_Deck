@@ -13,7 +13,7 @@ if (cardsList) {
   
   cards.forEach(c => {
     let color = `text-white`
-  if(getSavedCardsList().find(r => r.id == c.id).favorite == true)color = `text-yellow-400`
+  if(getSavedCardsList().find(r => r.id == c.id)?.favorite == true)color = `text-yellow-400`
     let cardImage = c.card_images?.[0]?.image_url || c.image || '';
      cardsList.innerHTML += `<article class="card relative flex flex-col gap-3 rounded-2xl p-3 pb-4 border border-gray-800 transition-all duration-300 ease-out hover:-translate-y-2 hover:scale-[1.02] hover:border-yellow-500/50 hover:shadow-2xl cursor-pointer bg-[#12161c] bg-cover bg-center" data-id="${c.id}" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
     
@@ -73,10 +73,10 @@ export function updateTeamCount() {
   const detailSection = document.getElementById('dcard');
   if (!detailSection) return;
   let color = `text-white`
-  if(getSavedCardsList().find(c => c.id == cardData.id).favorite == true)color = `text-yellow-400`
-
+let savedCard = getSavedCardsList().find(c => c.id == cardData.id);
+if (savedCard?.favorite === true) color = `text-yellow-400`;
   detailSection.innerHTML = `
-    <article id="detail" aria-label="card Détail de la créature" class="relative flex flex-col gap-3 rounded-2xl p-4 border border-gray-800 shadow-2xl bg-[#12161c] bg-cover bg-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
+    <article id="detail" aria-label="Détail de la créature" class="card relative flex flex-col gap-3 rounded-2xl p-4 border border-gray-800 shadow-2xl bg-[#12161c] bg-cover bg-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/bg.png')">
       
       <div class="flex items-center justify-between relative z-10">
         <div class="inline-flex items-center gap-2 font-mono text-xs font-bold bg-black/70 px-2.5 py-1 rounded border border-yellow-500/30">
