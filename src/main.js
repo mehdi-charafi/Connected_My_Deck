@@ -16,6 +16,7 @@ filter.addEventListener("change", (event) => {
   let SavedCardsList = getSavedCardsList()
   if(event.target.value == "Tous") {
     cardsRender()
+    enabledFilter = false
   } else {
     filterValue = SavedCardsList.filter((c) => c.type == event.target.value)
     cardsRender(filterValue)
@@ -62,16 +63,17 @@ sort.addEventListener('change', (event) => {
    }
    if (value === "favorite") {
   sorted.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
-} 
-else if (value === "level") {
-  sorted.sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0))
 }
-else if (value === "attack") {
-  sorted.sort((a, b) => (Number(b.stats.attack) || 0) - (Number(a.stats.attack) || 0)); 
-}
-else if (value === "defence") {
-  sorted.sort((a, b) => (Number(b.stats.defence) || 0) - (Number(a.stats.defence) || 0));
-}
+   else if (value != "id") {
+    sorted.sort((a, b) => {
+    let rawA = (value == "attack" || value == "defence")? Number(a.stats[value]) : Number(a[value])
+    let rawB = (value == "attack" || value == "defence")? Number(b.stats[value]) : Number(b[value])
+    let valA = (rawA) || 0
+    let valB = (rawB) || 0
+    return valB - valA
+    })
+   }
+
   cardsRender(sorted)
 })
 
@@ -195,6 +197,7 @@ form.addEventListener(`submit`, (event) => {
   console.log("New card added successfully!", newCard);
 });
 
+
 // Add to my cards
 cards.addEventListener('click', (event) => {
     if (event.target.closest('button') && event.target.closest('button').classList.contains('card-btn')) {
@@ -267,15 +270,11 @@ if(callBtn) {
 
 
   // favorite icon
-  let detailCard = document.querySelector("#dcard")
   document.addEventListener("click", (e)=> {
     if(!e.target.closest(".fav-icon"))return
     let favCard = e.target.closest(".card")
-    let favIcon = e.target.closest(".fav-icon")
+    let favIcon = e.target.closest(".fav-icon") 
     let favCardId = favCard.querySelector(".card-id").getAttribute("card-id")
     addToFavorite(favCardId, favIcon)
   })
 
-
-
- 
