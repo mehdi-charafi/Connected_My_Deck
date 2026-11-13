@@ -1,8 +1,8 @@
-let SavedDeck = JSON.parse(localStorage.getItem('mydeck')) || [];
-let SavedCardsList = JSON.parse(localStorage.getItem(`cardslist`)) || [];
 
 export function addToSavedDeck(obj) {
+   let SavedDeck = getSavedDeck()
    SavedDeck.push(obj)
+   saveSavedDeck(SavedDeck)
 }
 
 export function getSavedDeck() {
@@ -14,7 +14,9 @@ export function saveSavedDeck(array) {
    localStorage.setItem("mydeck", JSON.stringify(array))
 }
 
+// Cards List
 export function addToSavedCardsList(obj) {
+    let SavedCardsList = getSavedCardsList()
     SavedCardsList.push(obj)
 saveSavedCardsList(SavedCardsList)
 }
